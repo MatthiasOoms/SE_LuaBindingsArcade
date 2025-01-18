@@ -9,6 +9,7 @@
 // Include Files
 //-----------------------------------------------------------------
 
+#include <sol/sol.hpp>
 #include "Resource.h"	
 #include "GameEngine.h"
 #include "AbstractGame.h"
@@ -54,7 +55,6 @@ private:
 	// -------------------------
 	// Datamembers
 	// -------------------------
-
-
-
+	sol::state m_Lua;
+	bool m_Initialised{ false };
 };
