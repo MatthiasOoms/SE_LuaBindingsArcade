@@ -194,7 +194,7 @@ void Game::Initialize()
 
 	m_Lua["GAME_ENGINE"] = GAME_ENGINE;
 
-	m_Lua["CALLER"] = dynamic_cast<Callable*>(this);
+	m_Lua["CALLABLE"] = dynamic_cast<Callable*>(this);
 
 	m_Lua["initialize"]();
 

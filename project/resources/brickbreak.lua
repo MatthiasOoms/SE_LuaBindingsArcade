@@ -1,6 +1,6 @@
 --- Variables
-local player = {}
-player.__index = player
+local Player = {}
+Player.__index = Player
 
 local Ball = {}
 Ball.__index = Ball
@@ -15,20 +15,20 @@ Block.__index = Block
 --- player Constructor
 --- @param x integer
 --- @param y integer
---- @param velocityX integer
+--- @param velocity_x integer
 --- @param color string
 --- @param width integer
 --- @param height integer
---- @return player
-function player:new(x, y, velocityX, color, width, height)
+--- @return Player
+function Player:new(x, y, velocity_x, color, width, height)
 	--print("player:new called")
 
-	local self = setmetatable({}, player)
+	local self = setmetatable({}, Player)
 	self.x = x
 	self.y = y
 	self.width = width
 	self.height = height
-	self.velocityX = velocityX
+	self.velocity_x = velocity_x
 	self.color = color
 	self.score = 0
 	return self
@@ -36,10 +36,10 @@ end
 
 --- player tick
 --- Apply movement to player
-function player:tick()
+function Player:tick()
 	--print("player:tick called")
 
-    self.x = self.x + self.velocityX
+    self.x = self.x + self.velocity_x
 	
     local screenWidth = GAME_ENGINE:get_width()
 	
@@ -53,7 +53,7 @@ end
 
 --- player draw
 --- draw player on screen
-function player:draw()
+function Player:draw()
 	--print("player:draw called")
 
     GAME_ENGINE:set_color(tonumber(self.color, 16))
@@ -69,11 +69,11 @@ end
 --- @param y integer
 --- @param radius integer
 --- @param color string
---- @param velocityX integer
---- @param velocityY integer
+--- @param velocity_x integer
+--- @param velocity_y integer
 --- @param speed integer
 --- @return Ball
-function Ball:new(x,y,radius, color,velocityX,velocityY, speed)
+function Ball:new(x,y,radius, color,velocity_x,velocity_y, speed)
 	--print("Ball:new called")
 
 	local self = setmetatable({}, Ball)
@@ -81,8 +81,8 @@ function Ball:new(x,y,radius, color,velocityX,velocityY, speed)
 	self.y = y
 	self.radius = radius
 	self.color = color
-	self.velocityX = velocityX
-	self.velocityY = velocityY
+	self.velocity_x = velocity_x
+	self.velocity_y = velocity_y
 	self.speed = speed
 	return self
 end
@@ -91,8 +91,8 @@ end
 function Ball:tick()
 	--print("Ball:tick called")
 
-	self.x = self.x + self.velocityX
-	self.y = self.y + self.velocityY
+	self.x = self.x + self.velocity_x
+	self.y = self.y + self.velocity_y
 end
 
 -- Set Ball speed
@@ -118,16 +118,16 @@ function Ball:clamp_to_bounds()
 	-- Clamp X
 	if self.x - self.radius < 0 then
 		self.x = self.radius
-		self.velocityX = -self.velocityX
+		self.velocity_x = -self.velocity_x
 	elseif self.x + self.radius > GAME_ENGINE:get_width() then
 		self.x = GAME_ENGINE:get_width() - self.radius
-		self.velocityX = -self.velocityX
+		self.velocity_x = -self.velocity_x
 	end
 
 	-- Clamp Y
 	if self.y - self.radius < 0 then
 		self.y = self.radius
-		self.velocityY = -self.velocityY
+		self.velocity_y = -self.velocity_y
 	elseif self.y + self.radius > GAME_ENGINE:get_height() then
 		return false
 	end
@@ -136,7 +136,7 @@ function Ball:clamp_to_bounds()
 end
 
 --- Check player Collision
---- @param player player
+--- @param player Player
 function Ball:bounce(player)
 	--print("Ball:bounce called")
 
@@ -152,10 +152,10 @@ function Ball:bounce(player)
     if (distance_x^2 + distance_y^2) <= (self.radius^2) then
         -- Step 4: Determine the collision side
         if math.abs(distance_x) > math.abs(distance_y) then
-			-- Side, flip velocityX
-            self.velocityX = -self.velocityX
+			-- Side, flip velocity_x
+            self.velocity_x = -self.velocity_x
         else
-			-- To or bottom, flip velocityY and use angle
+			-- To or bottom, flip velocity_y and use angle
 			-- Get hit x position [-1, 1]
 			local hitX = (self.x - (player.x + player.width / 2)) / (player.width / 2)
 			
@@ -167,23 +167,23 @@ function Ball:bounce(player)
 			local angle = hitX * math.pi
 
 			-- Apply new speed based on angle (ceil to stay away from 0 and make float into number)
-			self.velocityX = math.ceil(self.speed * math.cos(angle))
+			self.velocity_x = math.ceil(self.speed * math.cos(angle))
 
 			-- If the ball hit the left side and is going right
-			if hitX < 0 and self.velocityX > 0 then
+			if hitX < 0 and self.velocity_x > 0 then
 				-- Flip x direction
-				self.velocityX = -self.velocityX
+				self.velocity_x = -self.velocity_x
 			-- If the ball hit the right side and is going left
-			elseif hitX > 0 and self.velocityX < 0 then
+			elseif hitX > 0 and self.velocity_x < 0 then
 				-- Flip x direction
-				self.velocityX = -self.velocityX
+				self.velocity_x = -self.velocity_x
 			end
 
 			-- Move ball out of player
 			self.y = player.y - self.radius - 1
 
 			-- Apply new speed based on angle (ceil to stay away from 0 and make float into number)
-			self.velocityY = -math.ceil(self.speed * math.abs(math.sin(angle)))
+			self.velocity_y = -math.ceil(self.speed * math.abs(math.sin(angle)))
         end
     end
 end
@@ -242,18 +242,18 @@ function Block:handle_overlap(ball)
         -- Step 4: Determine the collision side
         if math.abs(distance_x) > math.abs(distance_y) then
             if distance_x > 0 then
-				ball.velocityX = -ball.velocityX
+				ball.velocity_x = -ball.velocity_x
                 return self.score   -- Ball hit the left side of the block
             else
-				ball.velocityX = -ball.velocityX
+				ball.velocity_x = -ball.velocity_x
                 return self.score  -- Ball hit the right side of the block
             end
         else
             if distance_y > 0 then
-				ball.velocityY = -ball.velocityY
+				ball.velocity_y = -ball.velocity_y
                 return self.score    -- Ball hit the top side of the block
             else
-				ball.velocityY = -ball.velocityY
+				ball.velocity_y = -ball.velocity_y
                 return self.score -- Ball hit the bottom side of the block
             end
         end
@@ -273,14 +273,14 @@ end
 local WINDOWHEIGHT = 600
 local WINDOWWIDTH = 800
 local BASESPEED = 4
-local backgroundColor = "000000"
-local isAlive = true
+local background_color = "000000"
+local is_alive = true
 local highscore = 0
-local hitSound = nil
-local musicSound = nil
-local deathSound = nil
+local hit_sound = nil
+local music_sound = nil
+local death_sound = nil
 
-local player = player:new(350, 550, 0, "BB0000", 100, 20)
+local player = Player:new(350, 550, 0, "BB0000", 100, 20)
 local ball = Ball:new(400, 500, 5, "FFFFFF", BASESPEED, -BASESPEED, BASESPEED)
 local blocks = {}
 
@@ -302,17 +302,17 @@ end
 function initialize_variables()
 	--print("initialize_variables function called")
 
-	isAlive = true
+	is_alive = true
 
 	player.x = 350
 	player.y = 550
-	player.velocityX = 0
+	player.velocity_x = 0
 	player.score = 0
 
 	ball.x = 395
 	ball.y = 500
-	ball.velocityX = BASESPEED
-	ball.velocityY = -BASESPEED
+	ball.velocity_x = BASESPEED
+	ball.velocity_y = -BASESPEED
 	ball.speed = BASESPEED
 
 	local rows = 8
@@ -328,60 +328,60 @@ end
 -- @return table
 function create_blocks(rows, cols)
 	-- Set up blocks
-	local blockTable = {}
+	local block_table = {}
 
-	local windowSpacing = (GAME_ENGINE:get_height() // 6)
-	local blockWidth = GAME_ENGINE:get_width() // cols
-	local blockHeight = windowSpacing // rows
+	local window_spacing = (GAME_ENGINE:get_height() // 6)
+	local block_width = GAME_ENGINE:get_width() // cols
+	local block_height = window_spacing // rows
 
 	-- Generate 8 rows of blocks, with 14 blocks
 	for row = 1, rows do
 		for col = 1, cols do
 			-- Caluclate position of block
-			local x = (col - 1) * (blockWidth)
-			local y = (row - 1) * (blockHeight) + windowSpacing
+			local x = (col - 1) * (block_width)
+			local y = (row - 1) * (block_height) + window_spacing
 	
 			-- Create new block & insert in table
-			local blockColor = "0000FF"
-			local blockScore = 7
+			local block_color = "0000FF"
+			local block_score = 7
 	
 			if row > 2 then
-				blockColor = "00AAFF"
-				blockScore = 5
+				block_color = "00AAFF"
+				block_score = 5
 			end
 			if row > 4 then
-				blockColor = "00FF00"
-				blockScore = 3
+				block_color = "00FF00"
+				block_score = 3
 			end
 			if row > 6 then
-				blockColor = "00FFFF"
-				blockScore = 1
+				block_color = "00FFFF"
+				block_score = 1
 			end
 	
-			local block = Block.new(x, y, blockColor, blockScore, blockWidth, blockHeight)
-			table.insert(blockTable,block)
+			local block = Block.new(x, y, block_color, block_score, block_width, block_height)
+			table.insert(block_table, block)
 		end
 	end
 
-	return blockTable
+	return block_table
 end
 
 function start()
 	--print("start function called")
 	
-	hitSound = Audio.new("resources/hitSound.mp3")
-	hitSound:add_action_listener(CALLER)
-	musicSound = Audio.new("resources/musicSound.mp3")
-	musicSound:add_action_listener(CALLER)
-	deathSound = Audio.new("resources/deathSound.mp3")
-	deathSound:add_action_listener(CALLER)
+	hit_sound = Audio.new("resources/hitSound.mp3")
+	hit_sound:add_action_listener(CALLABLE)
+	music_sound = Audio.new("resources/musicSound.mp3")
+	music_sound:add_action_listener(CALLABLE)
+	death_sound = Audio.new("resources/deathSound.mp3")
+	death_sound:add_action_listener(CALLABLE)
 
 	start_variables()
 
 	--myButton = Button.new("PLAY")
 	--myButton:SetBounds(350, 150, 450, 250)
 	--myButton:Show()
-	--myButton:add_action_listener(CALLER)
+	--myButton:add_action_listener(CALLABLE)
 
 end
 
@@ -389,25 +389,25 @@ end
 function start_variables()
 	--print("start_variables function called")
 
-	musicSound:play(0, -1)
-	musicSound:set_volume(50)
-	musicSound:set_repeat(true)
+	music_sound:play(0, -1)
+	music_sound:set_volume(50)
+	music_sound:set_repeat(true)
 
-	hitSound:set_volume(50)
-	hitSound:set_repeat(false)
+	hit_sound:set_volume(50)
+	hit_sound:set_repeat(false)
 
-	deathSound:set_volume(50)
-	deathSound:set_repeat(false)
+	death_sound:set_volume(50)
+	death_sound:set_repeat(false)
 end
 
 function tick()
 	--print("tick function called")
 
-	musicSound:tick()
-	deathSound:tick()
-	hitSound:tick()
+	music_sound:tick()
+	death_sound:tick()
+	hit_sound:tick()
 
-	if isAlive == true then
+	if is_alive == true then
 		player:tick()
 		ball:tick()
 		
@@ -426,11 +426,11 @@ function tick()
 		for i, block in ipairs(blocks) do
 			count = count + 1
 			
-			local overlappedScore = block:handle_overlap(ball)
-			player.score = player.score + overlappedScore
+			local overlapped_score = block:handle_overlap(ball)
+			player.score = player.score + overlapped_score
 			
-			if overlappedScore > 0 then
-				hitSound:play(0, -1)
+			if overlapped_score > 0 then
+				hit_sound:play(0, -1)
 				table.remove(blocks, i)
 			end
 		end
@@ -440,7 +440,7 @@ function tick()
 			initialize_variables()
 		end
 	else
-		if deathSound:is_playing() == false then
+		if death_sound:is_playing() == false then
 			initialize_variables()
 		end
 	end
@@ -449,18 +449,18 @@ end
 function game_over()
 	-- print("game_over function called")
 
-	isAlive = false
-	musicSound:stop()
-	hitSound:stop()
+	is_alive = false
+	music_sound:stop()
+	hit_sound:stop()
 
-	deathSound:play(0, -1)
+	death_sound:play(0, -1)
 end
 
 function paint()
 	--print("paint function called")
 	
 	--- Clear the window with background color
-	GAME_ENGINE:fill_window_rect(tonumber(backgroundColor, 16))
+	GAME_ENGINE:fill_window_rect(tonumber(background_color, 16))
 
 	--- draw a rectangle
 	player:draw()
@@ -497,9 +497,9 @@ function key_pressed(key)
 	--print("key_pressed function called")
 
 	if key == "A" then
-		player.velocityX = 0
+		player.velocity_x = 0
 	elseif key == "D" then
-		player.velocityX = 0
+		player.velocity_x = 0
 	end
 end
 
@@ -507,26 +507,26 @@ function check_keyboard()
 	--print("check_keyboard function called")
 
 	if GAME_ENGINE:is_key_down(string.byte('A')) then
-		player.velocityX = -BASESPEED
+		player.velocity_x = -BASESPEED
 	end
 	if GAME_ENGINE:is_key_down(string.byte('D')) then
-		player.velocityX = BASESPEED
+		player.velocity_x = BASESPEED
 	end
 
 end
 
-function mouse_button_action(isLeft, isDown, x, y)
+function mouse_button_action(is_left, is_down, x, y)
 	--print("mouse_button_action function called")
 
-	if isLeft and isDown then
+	if is_left and is_down then
 		-- Mouse click logic in case needed
 	end
 end
 
-function call_action(callerPtr)
+function call_action(caller_ptr)
 	--print("call_action function called")
 
-	--if callerPtr == myButton then
+	--if caller_ptr == myButton then
 		--myButton:SetBounds(200, 200, 250, 250)
 	--end
 end
