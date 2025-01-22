@@ -23,12 +23,8 @@ set(SOURCES
     "source/AbstractGame.cpp"
 )
 
-set(LUA_SOURCES
-    "resources/brickbreak.lua"
-)
-
 # Create the executable with the Windows subsystem
-add_executable(${PROJECT_NAME} ${SOURCES} ${LUA_SOURCES})
+add_executable(${PROJECT_NAME} ${SOURCES})
 
 # Link the project with the lua and sol2 libraries
 target_link_libraries(${PROJECT_NAME} PRIVATE lua::lua sol2)
@@ -47,10 +43,17 @@ file(GLOB_RECURSE ALL_FILES
 
 # Filter out .lua files
 foreach(RESOURCE ${ALL_FILES})
-    if(NOT RESOURCE MATCHES "\\.lua$")
-        list(APPEND RESOURCE_FILES ${RESOURCE})
+    if(NOT RESOURCE MATCHES "annotations.lua")
+        if(NOT RESOURCE MATCHES "\\.lua$")
+            # add all other files to the resource files
+            list(APPEND RESOURCE_FILES ${RESOURCE})
+        else()
+            # add .lua files to the lua sources
+            list(APPEND LUA_SOURCES ${RESOURCE})
+        endif()
     else()
-        list(APPEND LUA_FILES ${RESOURCE})
+        # add annotations.lua to the resource files
+        list(APPEND RESOURCE_FILES ${RESOURCE})
     endif()
 endforeach()
 
@@ -62,7 +65,7 @@ foreach(RESOURCE ${RESOURCE_FILES})
     )
 endforeach()
 
-foreach(RESOURCE ${LUA_FILES})
+foreach(RESOURCE ${LUA_SOURCES})
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy "${RESOURCE}" "${CMAKE_CURRENT_BINARY_DIR}"
     )
