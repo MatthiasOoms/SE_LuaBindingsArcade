@@ -34,31 +34,47 @@ void Game::Initialize()
 	m_Lua.open_libraries(sol::lib::string);
 
 	// Get path to lua script dragged onto the .exe
-	std::string path = GetCommandLineA();
-	path = path.substr(path.find_last_of('\"') + 2);
+	std::string luaPath = GetCommandLineA();
+	size_t lastQuote{ luaPath.find_last_of('\"') };
+	size_t firstQuote{ luaPath.find_first_of('\"') };
+
+	std::string resourcePath{ "resources\\" };
+
+	if (firstQuote != std::string::npos || lastQuote != std::string::npos)
+	{
+		resourcePath = luaPath.substr(firstQuote + 1, lastQuote - (firstQuote + 1));
+
+		// File path looks like this ..\..\..\project\SE_Arcade.exe
+		// I need to get to the project folder
+		size_t lastSlash{ resourcePath.find_last_of('\\') };
+		resourcePath = resourcePath.substr(0, lastSlash + 1);
+		resourcePath += "resources\\";
+	}
+
+	luaPath = luaPath.substr(lastQuote + 2);
 
 	// If path containst spaces, complain
-	if (path.find(' ') != std::string::npos)
+	if (luaPath.find(' ') != std::string::npos)
 	{
-		path = "brickbreak.lua";
+		luaPath = "brickbreak.lua";
 		std::cerr << "Path to Lua script file contains spaces" << std::endl;
-		std::cerr << "Using default script fileL " << path << std::endl;
+		std::cerr << "Using default script fileL " << luaPath << std::endl;
 	}
 
 	// Check if path is a valid .lua file
-	if (path.find(".lua") == std::string::npos)
+	if (luaPath.find(".lua") == std::string::npos)
 	{
-		path = "brickbreak.lua";
+		luaPath = "brickbreak.lua";
 		std::cerr << "Invalid Lua script file" << std::endl;
-		std::cerr << "Using default script file: " << path << std::endl;
+		std::cerr << "Using default script file: " << luaPath << std::endl;
 	}
 	else
 	{
-		std::cout << "Using Lua script file: " << path << std::endl;
+		std::cout << "Using Lua script file: " << luaPath << std::endl;
 	}
 
 	// Load the Lua script
-	m_Lua.script_file(path);
+	m_Lua.script_file(luaPath);
 
 	// Bind types
 	m_Lua.new_usertype<RECT>("RECT",
@@ -299,6 +315,8 @@ void Game::Initialize()
 		"exists", &HitRegion::Exists,
 		"get_handle", &HitRegion::GetHandle
 	);
+
+	m_Lua["RESOURCEPATH"] = resourcePath;
 
 	m_Lua["GAME_ENGINE"] = GAME_ENGINE;
 

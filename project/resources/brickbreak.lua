@@ -242,23 +242,19 @@ function Block:handle_overlap(ball)
         -- Step 4: Determine the collision side
         if math.abs(distance_x) > math.abs(distance_y) then
             if distance_x > 0 then
-				ball.x = self.x - ball.radius - 1
 				ball.velocity_x = -ball.velocity_x
-                return self.score   -- Ball hit the left side of the block
+                return self.score
             else
-				ball.x = self.x + self.width + ball.radius + 1
 				ball.velocity_x = -ball.velocity_x
-                return self.score  -- Ball hit the right side of the block
+                return self.score
             end
         else
             if distance_y > 0 then
-				ball.y = self.y - ball.radius - 1
 				ball.velocity_y = -ball.velocity_y
-                return self.score    -- Ball hit the top side of the block
+                return self.score
             else
-				ball.y = self.y + self.height + ball.radius + 1
 				ball.velocity_y = -ball.velocity_y
-                return self.score -- Ball hit the bottom side of the block
+                return self.score
             end
         end
     end
@@ -373,11 +369,11 @@ end
 function start()
 	--print("start function called")
 	
-	hit_sound = Audio.new("resources/hitSound.mp3")
+	hit_sound = Audio.new(RESOURCEPATH .. "hitSound.mp3")
 	hit_sound:add_action_listener(CALLABLE)
-	music_sound = Audio.new("resources/musicSound.mp3")
+	music_sound = Audio.new(RESOURCEPATH .. "musicSound.mp3")
 	music_sound:add_action_listener(CALLABLE)
-	death_sound = Audio.new("resources/deathSound.mp3")
+	death_sound = Audio.new(RESOURCEPATH .. "deathSound.mp3")
 	death_sound:add_action_listener(CALLABLE)
 
 	start_variables()
