@@ -23,6 +23,8 @@ set(SOURCES
     "source/AbstractGame.cpp"
 )
 
+set_source_files_properties("source/Game.cpp" PROPERTIES COMPILE_FLAGS "/bigobj")
+
 # Create the executable with the Windows subsystem
 add_executable(${PROJECT_NAME} ${SOURCES})
 

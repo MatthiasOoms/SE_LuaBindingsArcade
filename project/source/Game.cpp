@@ -37,12 +37,20 @@ void Game::Initialize()
 	std::string path = GetCommandLineA();
 	path = path.substr(path.find_last_of('\"') + 2);
 
+	// If path containst spaces, complain
+	if (path.find(' ') != std::string::npos)
+	{
+		path = "brickbreak.lua";
+		std::cerr << "Path to Lua script file contains spaces" << std::endl;
+		std::cerr << "Using default script fileL " << path << std::endl;
+	}
+
 	// Check if path is a valid .lua file
 	if (path.find(".lua") == std::string::npos)
 	{
+		path = "brickbreak.lua";
 		std::cerr << "Invalid Lua script file" << std::endl;
-		std::cerr << "Using default script file" << std::endl;
-		path = "brickbreak.lua"; 
+		std::cerr << "Using default script file: " << path << std::endl;
 	}
 	else
 	{
@@ -51,6 +59,32 @@ void Game::Initialize()
 
 	// Load the Lua script
 	m_Lua.script_file(path);
+
+	// Bind types
+	m_Lua.new_usertype<RECT>("RECT",
+		sol::constructors<RECT(LONG, LONG, LONG, LONG)>(),
+		"left", &RECT::left,
+		"top", &RECT::top,
+		"right", &RECT::right,
+		"bottom", &RECT::bottom
+	);
+
+	m_Lua.new_usertype<POINT>("POINT",
+		sol::constructors<POINT(LONG, LONG)>(),
+		"x", &POINT::x,
+		"y", &POINT::y
+	);
+
+	m_Lua.new_usertype<SIZE>("SIZE",
+		sol::constructors<SIZE(LONG, LONG)>(),
+		"cx", &SIZE::cx,
+		"cy", &SIZE::cy
+	);
+
+	m_Lua.new_usertype<Font>("Font",
+		sol::constructors<Font(const tstring&, bool, bool, bool, int)>(),
+		"get_handle", &Font::GetHandle
+	);
 
 	// Bind GameEngine class
 	m_Lua.new_usertype<GameEngine>("GameEngine",
@@ -127,10 +161,52 @@ void Game::Initialize()
 		"call_action", &Callable::CallAction
 	);
 
+	m_Lua.create_named_table("Type",
+		"text_box", Caller::Type::TextBox,
+		"button", Caller::Type::Button,
+		"timer", Caller::Type::Timer,
+		"audio", Caller::Type::Audio,
+		"video", Caller::Type::Video
+	);
+
 	m_Lua.new_usertype<Caller>("Caller",
 		// Methods
 		"add_action_listener", &Caller::AddActionListener,
 		"remove_action_listener", &Caller::RemoveActionListener
+	);
+
+	m_Lua.new_usertype<Timer>("Timer",
+		sol::constructors<Timer(int, Callable*, bool)>(),
+		sol::base_classes, sol::bases<Caller>(),
+		"start", &Timer::Start,
+		"stop", &Timer::Stop,
+		"set_delay", &Timer::SetDelay,
+		"set_repeat", &Timer::SetRepeat,
+		"is_running", &Timer::IsRunning,
+		"get_delay", &Timer::GetDelay,
+		"get_type", &Timer::GetType
+	);
+
+	m_Lua.new_usertype<TextBox>("TextBox",
+		sol::constructors<TextBox(const tstring&), TextBox()>(),
+		sol::base_classes, sol::bases<Caller>(),
+		// Setters
+		"set_bounds", &TextBox::SetBounds,
+		"set_text", &TextBox::SetText,
+		"set_font", &TextBox::SetFont,
+		"set_backcolor", &TextBox::SetBackcolor,
+		"set_forecolor", &TextBox::SetForecolor,
+		"set_enabled", &TextBox::SetEnabled,
+		// Functions
+		"show", &TextBox::Show,
+		"hide", &TextBox::Hide,
+		// Read only functions
+		"get_bounds", sol::readonly_property(&TextBox::GetBounds),
+		"get_text", sol::readonly_property(&TextBox::GetText),
+		"get_forecolor", sol::readonly_property(&TextBox::GetForecolor),
+		"get_backcolor", sol::readonly_property(&TextBox::GetBackcolor),
+		"get_backcolor_brush", sol::readonly_property(&TextBox::GetBackcolorBrush),
+		"get_type", sol::readonly_property(&TextBox::GetType)
 	);
 
 	m_Lua.new_usertype<Button>("Button",
@@ -190,6 +266,38 @@ void Game::Initialize()
 		"check_keyboard", &Game::CheckKeyboard,
 		"key_pressed", &Game::KeyPressed,
 		"call_action", &Game::CallAction
+	);
+
+	m_Lua.new_usertype<Bitmap>("Bitmap",
+		sol::constructors<Bitmap(const tstring&)>(),
+		"set_transparency_color", &Bitmap::SetTransparencyColor,
+		"set_opacity", &Bitmap::SetOpacity,
+		"exists", &Bitmap::Exists,
+		"get_width", &Bitmap::GetWidth,
+		"get_height", &Bitmap::GetHeight,
+		"get_transparency_color", &Bitmap::GetTransparencyColor,
+		"get_opacity", &Bitmap::GetOpacity,
+		"has_alpha_channel", &Bitmap::HasAlphaChannel,
+		"save_to_file", &Bitmap::SaveToFile,
+		"get_handle", &Bitmap::GetHandle
+	);
+
+	m_Lua.create_named_table("Shape",
+		"ellipse", HitRegion::Shape::Ellipse,
+		"rectangle", HitRegion::Shape::Rectangle
+	);
+
+	m_Lua.new_usertype<HitRegion>("HitRegion",
+		sol::constructors<HitRegion(HitRegion::Shape, int, int, int, int), HitRegion(const POINT*, int), HitRegion(const Bitmap*, COLORREF, COLORREF)>(),
+		"move", &HitRegion::Move,
+		"hit_test", sol::overload(
+			static_cast<bool(HitRegion::*)(int, int) const>(&HitRegion::HitTest),
+			static_cast<bool(HitRegion::*)(const HitRegion*) const>(&HitRegion::HitTest)
+		),
+		"collision_test", &HitRegion::CollisionTest,
+		"get_bounds", &HitRegion::GetBounds,
+		"exists", &HitRegion::Exists,
+		"get_handle", &HitRegion::GetHandle
 	);
 
 	m_Lua["GAME_ENGINE"] = GAME_ENGINE;
