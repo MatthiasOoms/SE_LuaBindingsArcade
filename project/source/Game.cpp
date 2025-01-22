@@ -57,20 +57,26 @@ void Game::Initialize()
 	if (luaPath.find(' ') != std::string::npos)
 	{
 		luaPath = "brickbreak.lua";
-		std::cerr << "Path to Lua script file contains spaces" << std::endl;
-		std::cerr << "Using default script fileL " << luaPath << std::endl;
+#ifdef _DEBUG
+		std::cout << "Path to Lua script file contains spaces" << std::endl;
+		std::cout << "Using default script fileL " << luaPath << std::endl;
+#endif
 	}
 
 	// Check if path is a valid .lua file
 	if (luaPath.find(".lua") == std::string::npos)
 	{
 		luaPath = "brickbreak.lua";
-		std::cerr << "Invalid Lua script file" << std::endl;
-		std::cerr << "Using default script file: " << luaPath << std::endl;
+#ifdef _DEBUG
+		std::cout << "Invalid Lua script file" << std::endl;
+		std::cout << "Using default script file: " << luaPath << std::endl;
+#endif
 	}
 	else
 	{
+#ifdef _DEBUG
 		std::cout << "Using Lua script file: " << luaPath << std::endl;
+#endif
 	}
 
 	// Load the Lua script
@@ -217,12 +223,12 @@ void Game::Initialize()
 		"show", &TextBox::Show,
 		"hide", &TextBox::Hide,
 		// Read only functions
-		"get_bounds", sol::readonly_property(&TextBox::GetBounds),
-		"get_text", sol::readonly_property(&TextBox::GetText),
-		"get_forecolor", sol::readonly_property(&TextBox::GetForecolor),
-		"get_backcolor", sol::readonly_property(&TextBox::GetBackcolor),
-		"get_backcolor_brush", sol::readonly_property(&TextBox::GetBackcolorBrush),
-		"get_type", sol::readonly_property(&TextBox::GetType)
+		"get_bounds", &TextBox::GetBounds,
+		"get_text", &TextBox::GetText,
+		"get_forecolor", &TextBox::GetForecolor,
+		"get_backcolor", &TextBox::GetBackcolor,
+		"get_backcolor_brush", &TextBox::GetBackcolorBrush,
+		"get_type", &TextBox::GetType
 	);
 
 	m_Lua.new_usertype<Button>("Button",
@@ -237,9 +243,9 @@ void Game::Initialize()
 		"set_text", &Button::SetText,
 		"set_font", &Button::SetFont,
 		// Read only functions
-		"get_bounds", sol::readonly_property(&Button::GetBounds),
-		"get_text", sol::readonly_property(&Button::GetText),
-		"get_type", sol::readonly_property(&Button::GetType),
+		"get_bounds", &Button::GetBounds,
+		"get_text", &Button::GetText,
+		"get_type", &Button::GetType,
 		// Other functions
 		"add_action_listener", &Button::AddActionListener,
 		"remove_action_listener", &Button::RemoveActionListener
@@ -257,15 +263,15 @@ void Game::Initialize()
 		"set_volume", &Audio::SetVolume,
 		"set_repeat", &Audio::SetRepeat,
 		// Getters
-		"get_name", sol::readonly_property(&Audio::GetName),
-		"get_alias", sol::readonly_property(&Audio::GetAlias),
-		"get_duration", sol::readonly_property(&Audio::GetDuration),
+		"get_name", &Audio::GetName,
+		"get_alias", &Audio::GetAlias,
+		"get_duration", &Audio::GetDuration,
 		"is_playing", &Audio::IsPlaying,
-		"is_paused", sol::readonly_property(&Audio::IsPaused),
-		"get_repeat", sol::readonly_property(&Audio::GetRepeat),
-		"exists", sol::readonly_property(&Audio::Exists),
-		"get_volume", sol::readonly_property(&Audio::GetVolume),
-		"get_type", sol::readonly_property(&Audio::GetType),
+		"is_paused", &Audio::IsPaused,
+		"get_repeat", &Audio::GetRepeat,
+		"exists", &Audio::Exists,
+		"get_volume", &Audio::GetVolume,
+		"get_type", &Audio::GetType,
 		"add_action_listener", &Audio::AddActionListener,
 		"remove_action_listener", &Audio::RemoveActionListener
 	);
@@ -273,7 +279,7 @@ void Game::Initialize()
 	m_Lua.new_usertype<Game>("Game",
 		"initialize", &Game::Initialize,
 		"start", &Game::Start,
-		"end", &Game::End,
+		"end_game", &Game::End,
 		"paint", &Game::Paint,
 		"tick", &Game::Tick,
 		"mouse_button_action", &Game::MouseButtonAction,
@@ -341,7 +347,7 @@ void Game::Start()
 void Game::End()
 {
 	// Insert code that needs to execute when the game ends
-	m_Lua["end"]();
+	m_Lua["end_game"]();
 }
 
 void Game::Paint(RECT rect) const

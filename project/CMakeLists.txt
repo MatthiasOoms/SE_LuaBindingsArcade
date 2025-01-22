@@ -31,9 +31,6 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 # Link the project with the lua and sol2 libraries
 target_link_libraries(${PROJECT_NAME} PRIVATE lua::lua sol2)
 
-# Add the source directory to the include directories
-#target_include_directories(${PROJECT_NAME} PRIVATE source)
-
 # Set entry point to wWinMain
 set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "/ENTRY:wWinMainCRTStartup")
 

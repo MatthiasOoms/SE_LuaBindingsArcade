@@ -318,8 +318,6 @@ function initialize_variables()
 	local rows = 8
 	local cols = 14
 	blocks = create_blocks(rows, cols)
-
-	start_variables()
 end
 
 -- Create a table of blocks
@@ -370,10 +368,11 @@ function start()
 	--print("start function called")
 	
 	hit_sound = Audio.new(RESOURCEPATH .. "hitSound.mp3")
-	hit_sound:add_action_listener(CALLABLE)
 	music_sound = Audio.new(RESOURCEPATH .. "musicSound.mp3")
-	music_sound:add_action_listener(CALLABLE)
 	death_sound = Audio.new(RESOURCEPATH .. "deathSound.mp3")
+
+	hit_sound:add_action_listener(CALLABLE)
+	music_sound:add_action_listener(CALLABLE)
 	death_sound:add_action_listener(CALLABLE)
 
 	start_variables()
@@ -398,6 +397,7 @@ function start_variables()
 
 	death_sound:set_volume(50)
 	death_sound:set_repeat(false)
+
 end
 
 function tick()
@@ -438,10 +438,12 @@ function tick()
 		if count == 0 then
 			-- On win Reset game
 			initialize_variables()
+			start_variables()
 		end
 	else
 		if death_sound:is_playing() == false then
 			initialize_variables()
+			start_variables()
 		end
 	end
 end
@@ -523,10 +525,30 @@ function mouse_button_action(is_left, is_down, x, y)
 	end
 end
 
+function mouse_move(x, y)
+	--print("mouse_move function called")
+
+	-- Mouse move logic in case needed
+end
+
+function mouse_wheel_action(x, y, distance)
+	--print("mouse_wheel_action function called")
+
+	-- Mouse wheel logic in case needed
+end
+
 function call_action(caller_ptr)
 	--print("call_action function called")
 
 	--if caller_ptr == myButton then
 		--myButton:SetBounds(200, 200, 250, 250)
 	--end
+end
+
+function end_game()
+	--print("end function called")
+
+	music_sound:stop()
+	hit_sound:stop()
+	death_sound:stop()
 end
